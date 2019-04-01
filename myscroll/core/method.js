@@ -1,4 +1,5 @@
 import {ease} from '../utils/const'
+import {requestAF} from '../utils/util'
 
 export default {
 
@@ -6,6 +7,7 @@ export default {
     let mark = this.options.direction
     this.pos = pos
     this.scrollStyle.transform = `translate${mark}(${pos}px) ${this.translateZ}`
+    this._trigger('scroll', this.pos)
   },
 
   _transition (duration, style) {
@@ -14,6 +16,7 @@ export default {
   },
 
   _scrollTo (pos, duration, style) {
+    this.isInTransition = true
     if (pos === this.pos) {
       this._transitionend()
       return
@@ -22,6 +25,7 @@ export default {
       duration = 0
     }
     this._transition(duration + 'ms', style)
+    this._animation()
     this._translate(pos)
   },
 
@@ -33,7 +37,7 @@ export default {
 
   _scrollToElement (index, duration, style) {  //滚动到指定元素
     console.log('scrollToEle', index)
-    duration = duration || this.options.playDuration
+    duration = duration == 0 ? duration : duration || this.options.playDuration
     style = style || this.options.playStyle
     let newPos = this.scrollElChildPos[index]
     this._scrollTo(newPos, duration, style)
@@ -109,6 +113,18 @@ export default {
     return arr
   },
 
+  _animation () {
+    if (!this.listener['scroll']) {
+      return
+    }
+    this._trigger('scroll', this._getPos())
+    this.animationTimer = requestAF(() => {
+      if (this.isInTransition) {
+        this._animation()
+      }
+    })
+  },
+
   getLeft (el) {
     let left = el.offsetLeft
     if (el.offsetParent !== null) left += this.getLeft(el.offsetParent)
@@ -159,6 +175,14 @@ export default {
     this.updateLoad = false
   },
 
+  scrollTo (pos) {
+    this._scrollTo(pos)
+  },
+
+  scrollToElement (index, duration, style) {
+    this._scrollToElement(index, duration, style)
+  },
+
   load (result=false) {
     clearTimeout(this.loadTimer)
     if (result) {
@@ -170,10 +194,10 @@ export default {
     this.updateLoad = false
   },
 
-  _trigger (event, ...rest) {  //触发事件
+  _trigger (event, argument) {  //触发事件
     if (this.listener[event]) {
       this.listener[event].forEach((fn) => {
-        fn(rest)
+        fn(argument)
       })
     }
   },
@@ -188,10 +212,15 @@ export default {
     if (this.playTimer) {
       clearTimeout(this.playTimer)
     }
+    if (this.animationTimer) {
+      this.animationTimer = null
+    }
     this.isMoved = false
+    console.log('isMoved:', this.isMoved)
   },
 
   refresh() { //需要对实例进行更新，scrollEl发生了改变，更新高度/宽度以及相应的边界信息
+    console.log('refresh')
     let mark = this.options.direction
     let scrollElSize = this._getSize(this.scrollEl, mark)
     if (mark === 'Y') {
@@ -208,5 +237,17 @@ export default {
     console.log(this.bottomBound)
     this.scrollElChildPos = this._getChildPos(this.scrollEl, mark)  //更新子元素位置信息
     this.len = this.scrollElChildPos.length
+    this.animationTimer = null
+    this.loadTimer = null
+    this.updateTimer = null
+    this.wrapElTop = this.getTop(this.wrapEl) //wrap元素在页面中的位置
+    this.wrapElLeft = this.getLeft(this.wrapEl) 
+    this.wrapElBottom = this.wrapElTop + this.wrapEl.offsetHeight
+    this.wrapElRight = this.wrapElLeft + this.wrapEl.offsetWidth
+    if (this.options.autoplay) {
+      this.playTimer = setTimeout(() => {
+        this._scrollToElement(this.eleIndex + 1)
+      }, this.options.interval)
+    }
   }
 }

@@ -83,7 +83,8 @@ export default {
       this._scrollTo(anchorIndex)
     },
     scroll (pos) {
-      this.scrollY = pos.y
+      console.log('scroll', pos)
+      this.scrollY = pos
     },
     _scrollTo (anchorIndex) {
       if (!anchorIndex && anchorIndex != 0) {
@@ -95,7 +96,7 @@ export default {
         anchorIndex = this.listHeight.length - 2
       }
       this.scrollY = 0 - (this.listHeight[anchorIndex])
-      this.$refs.listview.scrollToElement(this.$refs.listGroup[anchorIndex], 0)
+      this.$refs.listview.scrollToElement(anchorIndex, 0)
     },
     _calculateHeight () {
       this.listHeight = []

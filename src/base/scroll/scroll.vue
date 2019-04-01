@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import BScroll from 'better-scroll'
+import MyScroll from '../../../myscroll/index.js'
 export default {
   name: 'Scroll',
   props: {
@@ -37,10 +37,7 @@ export default {
       if (!this.$refs.wrapper) {
         return
       }
-      this.scroll = new BScroll(this.$refs.wrapper, {
-        probeType: this.probeType,
-        click: this.click
-      })
+      this.scroll = new MyScroll(this.$refs.wrapper)
       if (this.listenScroll) {
         let _this = this
         this.scroll.on('scroll', (pos) => {

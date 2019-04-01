@@ -7,7 +7,7 @@
             <slider ref='slider'>
               <div v-for='item in recommends' class='slider-item'>
                 <a :href='item.linkUrl'>
-                  <img :src='item.picUrl'/>
+                  <img @load='loadImage' :src='item.picUrl'/>
                 </a>
               </div>
             </slider>
@@ -56,6 +56,7 @@ export default {
     Loading
   },
   created () {
+    this.checkLoad = false
     console.log('recommend_create')
     this._getRecommend()
     this._getDiscList()
@@ -73,6 +74,15 @@ export default {
     console.log('recommend_deactivated')
   },
   methods: {
+    loadImage() {
+      if (!this.checkloaded) {
+        this.checkloaded = true
+        setTimeout(() => {
+          this.$refs.scroll.refresh()
+          this.$refs.slider && this.$refs.slider.slider.refresh()
+        }, 20)
+      }
+    },
     _getRecommend () {
       getRecommend().then((res) => {
         if (res.code === ERR_OK) {

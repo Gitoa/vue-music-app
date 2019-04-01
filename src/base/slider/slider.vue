@@ -12,7 +12,6 @@
 
 <script>
 import MyScroll from '../../../myscroll/index.js'
-import BScroll from 'better-scroll'
 import {addClass} from 'common/js/dom'
 export default {
   name: 'Slider',
@@ -75,6 +74,7 @@ export default {
       this.dots = new Array(this.children.length)
     },
     _initSlider () {
+      console.log(this.$refs.slider.offsetHeight)
       this.slider = new MyScroll(this.$refs.slider, {
         direction: 'X',
         loop: this.loop,
@@ -97,6 +97,7 @@ export default {
 <style lang='scss' scoped>
 @import "~common/scss/variable";
 .slider {
+  height: auto;
   min-height: 1px;
   position: relative;
   .slider-group {

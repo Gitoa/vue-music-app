@@ -43,9 +43,7 @@ export default function MyScroll (el, options) {
   }
   
   let scrollElSize = this._getSize(this.scrollEl, mark)
-  console.log(scrollElSize)
   this.scrollElChildPos = this._getChildPos(this.scrollEl, mark)
-  console.log(this.scrollElChildPos)
   //如果是水平滚动，需要将scrollEl元素的宽度撑开
   this.scrollStyle = this.scrollEl.style
   this.scrollStyle.transitionProperty = 'transform'
@@ -72,8 +70,6 @@ export default function MyScroll (el, options) {
     this.scrollEl.style.width = scrollElSize + 'px'
     this.minScrollPos = this.wrapEl.offsetWidth - this.scrollEl.offsetWidth
   }
-  console.log(this.pos)
-  console.log(this.scrollStyle, this.scrollEl.offsetHeight)
   this.maxScrollPos = 0   //最大位置，超出回弹（下拉为正，对应顶部位置，同时对应右侧位置
   this.topBound = this.maxScrollPos + this.options.topBounceDistance //顶部下拉最大位置，右侧右拉最大位置
   this.bottomBound = this.minScrollPos - this.options.bottomBounceDistance  //底部上拉最小位置 ，左侧左拉最小位置
@@ -95,14 +91,16 @@ export default function MyScroll (el, options) {
   this.velocity = 0 //某次滚动事件内的速度
 
   this.isMoved = false  //标记是否在滚动
+  this.isInTransition = false //标记是否处于惯性滚动中
   this.onplay = false //标记是否处于自动播放
   this.updateLoad = false //标记是否处于更新加载阶段，此时任意事件都不能触发，仅在updateLoadLock为true时在transitionend中修改
   this.updateLoadLock = true //用于锁定updateLoad
 
   this.listener = []  //发布/订阅模式下订阅的事件及处理函数集合
 
-  this.loadTimer = {}
-  this.updateTimer = {}
+  this.animationTimer = null
+  this.loadTimer = null
+  this.updateTimer = null
   if (this.options.autoplay) {
     this.playTimer = setTimeout(() => {
       this._scrollToElement(this.eleIndex + 1)

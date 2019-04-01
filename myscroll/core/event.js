@@ -1,7 +1,6 @@
 export default {
   _touchstart (e) {
     console.log('_touchstart')
-    this.isMoved = false
     if (!this.options.scrollable || this.updateLoad) {
       return
     }
@@ -21,16 +20,18 @@ export default {
 
   _touchmove (e) {
     console.log('_touchmove')
+    console.log(this.wrapSize, this.isMoved, this.updateLoad)
     if (this.isMoved || this.updateLoad) {
       return
     }
     this.onplay = false //中断自动播放
-    e.preventDefault()
+   
     if (!this.options.scrollable) {
       return
     }
     let mark = this.options.direction
     let point = e.touches[0]
+    console.log(point)
     this.currentPos = point['client' + mark]
     this.delta = this.currentPos - this.prePos
     let newPos = this.pos + this.delta
@@ -107,7 +108,7 @@ export default {
           //超出右侧、底部
           if (this.minScrollPos - this.pos > this.options.loadTriggerDistance) {
             //触发了底部加载事件
-            this.updateLoadLock = true
+            this.updateLoadLock = this.options.updateLoad
             this.updateLoad = true
             this._trigger('load')
             this.loadTimer = setTimeout(() => {
@@ -123,7 +124,7 @@ export default {
           //超出左侧、顶部
           if (this.pos - this.maxScrollPos > this.options.updateTriggerDistance) {
             //触发了顶部更新事件
-            this.updateLoadLock = true
+            this.updateLoadLock = this.options.updateLoad
             this.updateLoad = true
             this._trigger('update')
             this.updateTimer = setTimeout(() => {
@@ -160,6 +161,7 @@ export default {
   },
 
   _transitionend (e) {
+    this.isInTransition = false
     this._trigger('scrollEnd')
     if (!this.updateLoadLock) {
       this.updateLoad = false
