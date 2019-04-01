@@ -1,7 +1,7 @@
 export default {
   _touchstart (e) {
-    console.log(this.getLeft(this.wrapEl), this.getTop(this.wrapEl))
     console.log('_touchstart')
+    this.isMoved = false
     if (!this.options.scrollable || this.updateLoad) {
       return
     }
@@ -21,7 +21,6 @@ export default {
 
   _touchmove (e) {
     console.log('_touchmove')
-    console.log(this.updateLoad, this.isMoved)
     if (this.isMoved || this.updateLoad) {
       return
     }
@@ -64,7 +63,7 @@ export default {
       this.preTime = this.currentTime
       this.totalDuration += this.duration
       console.log('currentPoint: ', point.pageX, point.pageY)
-      console.log('border:', this.wrapElLeft, this.wrapElRight, this.wrapElBottom, this.wrapElTop)
+      console.log('left:', this.wrapElLeft, ' right:', this.wrapElRight, ' top:', this.wrapElTop, ' bottom: ', this.wrapElBottom)
       //需要做一次边界判断，若触摸点超出容器范围，直接触发touchend
       if (point.pageX >= this.wrapElRight || point.pageX <= this.wrapElLeft || point.pageY >= this.wrapElBottom || point.pageY <= this.wrapElTop) {
         console.log('out of range')
@@ -77,6 +76,10 @@ export default {
     if (this.updateLoad) {
       return
     }
+    if (this.isMoved) {
+      return
+    }
+    this.isMoved = true
     switch (this.options.autoplay) {
       case true:
         //轮播，需要根据位置判断切换
@@ -100,10 +103,6 @@ export default {
         this._scrollToElement(newIndex, this.options.bounceDuration, 'swipe')
         break;
       default:
-        if (this.isMoved) {
-          return
-        }
-        this.isMoved = true
         if (this.pos < this.minScrollPos) { 
           //超出右侧、底部
           if (this.minScrollPos - this.pos > this.options.loadTriggerDistance) {
@@ -161,6 +160,7 @@ export default {
   },
 
   _transitionend (e) {
+    this._trigger('scrollEnd')
     if (!this.updateLoadLock) {
       this.updateLoad = false
     }

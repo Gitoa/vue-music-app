@@ -11,6 +11,7 @@
 </template>
 
 <script>
+import MyScroll from '../../../myscroll/index.js'
 import BScroll from 'better-scroll'
 import {addClass} from 'common/js/dom'
 export default {
@@ -40,9 +41,6 @@ export default {
       this._setSliderWidth()
       this._initDots()
       this._initSlider()
-      if (this.autoPlay) {
-        this._play()
-      }
     }, 20)
 
     window.addEventListener('resize', () => {
@@ -77,44 +75,21 @@ export default {
       this.dots = new Array(this.children.length)
     },
     _initSlider () {
-      this.slider = new BScroll(this.$refs.slider, {
-        scrollX: true,
-        scrollY: false,
+      this.slider = new MyScroll(this.$refs.slider, {
+        direction: 'X',
+        loop: this.loop,
         momentum: false,
-        snap: {
-          loop: this.loop,
-          threshold: 0.3,
-          speed: 400
-        }
+        autoplay: this.autoPlay
       })
 
       this.slider.on('scrollEnd', this._onScrollEnd)
 
-      this.slider.on('touchend', () => {
-        if (this.autoPlay) {
-          this._play()
-        }
-      })
-
-      this.slider.on('beforeScrollStart', () => {
-        if (this.autoPlay) {
-          clearTimeout(this.timer)
-        }
-      })
     },
     _onScrollEnd () {
-      let pageIndex = this.slider.getCurrentPage().pageX
+      let pageIndex = this.slider.getCurrentPage()
+      console.log(pageIndex)
       this.currentPageIndex = pageIndex
-      if (this.autoPlay) {
-        this._play()
-      }
     },
-    _play () {
-      clearTimeout(this.timer)
-      this.timer = setTimeout(() => {
-        this.slider.next()
-      }, this.interval)
-    }
   }
 }
 </script>

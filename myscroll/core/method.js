@@ -121,6 +121,14 @@ export default {
     return top
   },
 
+  getCurrentPage () {
+    let page = this._getElementIndex()
+    if (this.options.loop) {
+      return page == (this.len - 1) ? 0 : page - 1
+    }
+    return page
+  },
+
   on (event, fn) {  //注册监听函数
     if (!this.listener[event]) {
       this.listener[event] = []
@@ -199,5 +207,6 @@ export default {
     this.bottomBound = this.minScrollPos - this.options.bottomBounceDistance  //底部上拉最小位置 ，右侧右拉最小位置
     console.log(this.bottomBound)
     this.scrollElChildPos = this._getChildPos(this.scrollEl, mark)  //更新子元素位置信息
+    this.len = this.scrollElChildPos.length
   }
 }
