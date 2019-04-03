@@ -87,6 +87,7 @@ const devWebpackConfig = merge(baseWebpackConfig, {
 
       app.post('/api/getPurlUrl', bodyParser.json(), function (req, res) {
         const url = 'https://u.y.qq.com/cgi-bin/musicu.fcg'
+        console.log('/api/getPurlUrl', url)
         axios.post(url, req.body, {
           headers: {
             referer: 'https://y.qq.com/',
@@ -94,6 +95,7 @@ const devWebpackConfig = merge(baseWebpackConfig, {
             'Content-type': 'application/x-www-form-urlencoded'
           }
         }).then((response) => {
+          console.log(response.data)
           res.json(response.data)
         }).catch((e) => {
           console.log(e)
