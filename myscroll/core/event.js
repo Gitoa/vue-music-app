@@ -1,7 +1,7 @@
 export default {
   _touchstart (e) {
     console.log('_touchstart')
-    if (!this.options.scrollable || this.updateLoad) {
+    if (!this.options.scrollable || this.update || this.load) {
       return
     }
     //preventDefault/stopPropagation
@@ -20,9 +20,13 @@ export default {
 
   _touchmove (e) {
     console.log('_touchmove')
-    console.log(this.wrapSize, this.isMoved, this.updateLoad)
-    if (this.isMoved || this.updateLoad) {
+    console.log(this.update, this.load, this.isMoved)
+    if (this.isMoved || this.update || this.load) {
       return
+    }
+    if (!this.scrolling) {
+      this._trigger('scrollStart')
+      this.scrolling = true
     }
     this.onplay = false //中断自动播放
    
@@ -31,7 +35,6 @@ export default {
     }
     let mark = this.options.direction
     let point = e.touches[0]
-    console.log(point)
     this.currentPos = point['client' + mark]
     this.delta = this.currentPos - this.prePos
     let newPos = this.pos + this.delta
@@ -74,7 +77,7 @@ export default {
 
   _touchend (e) {
     console.log('touchend')
-    if (this.updateLoad) {
+    if (this.update || this.load) {
       return
     }
     if (this.isMoved) {
@@ -106,13 +109,12 @@ export default {
       default:
         if (this.pos < this.minScrollPos) { 
           //超出右侧、底部
-          if (this.minScrollPos - this.pos > this.options.loadTriggerDistance) {
+          if (this.options.load && this.minScrollPos - this.pos > this.options.loadTriggerDistance) {
             //触发了底部加载事件
-            this.updateLoadLock = this.options.updateLoad
-            this.updateLoad = true
+            this.updateLoadLock = true
+            this.load = true
             this._trigger('load')
             this.loadTimer = setTimeout(() => {
-              console.log('tirgger after ', this.options.loadTriggerDelay)
               this._bounceToBottom()
               this.updateLoadLock = false
             }, this.options.loadTriggerDelay)
@@ -122,10 +124,10 @@ export default {
           return
         } else if (this.pos > this.maxScrollPos) {  
           //超出左侧、顶部
-          if (this.pos - this.maxScrollPos > this.options.updateTriggerDistance) {
+          if (this.options.update && this.pos - this.maxScrollPos > this.options.updateTriggerDistance) {
             //触发了顶部更新事件
-            this.updateLoadLock = this.options.updateLoad
-            this.updateLoad = true
+            this.updateLoadLock = true
+            this.update = true
             this._trigger('update')
             this.updateTimer = setTimeout(() => {
               this._bounceToTop()
@@ -164,7 +166,8 @@ export default {
     this.isInTransition = false
     this._trigger('scrollEnd')
     if (!this.updateLoadLock) {
-      this.updateLoad = false
+      this.update = false
+      this.load = false
     }
     this.scrollStyle.transitionDuration = '0ms'
     this.pos = this._getPos()
@@ -194,7 +197,6 @@ export default {
     //判断是否需要回弹
     if (this.pos > this.maxScrollPos) {
       this._bounceToTop()
-      
     } else if(this.pos < this.minScrollPos) {
       this._bounceToBottom()
     }

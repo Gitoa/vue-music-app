@@ -36,7 +36,6 @@ export default {
   },
 
   _scrollToElement (index, duration, style) {  //滚动到指定元素
-    console.log('scrollToEle', index)
     duration = duration == 0 ? duration : duration || this.options.playDuration
     style = style || this.options.playStyle
     let newPos = this.scrollElChildPos[index]
@@ -86,7 +85,6 @@ export default {
       duration = this.options.momentumBounceDuration
       targetPos = this.maxScrollPos + Math.min((targetPos - this.maxScrollPos) / 3, this.options.updateTriggerDistance)
     }
-    console.log(duration, targetPos)
     return {
       duration,
       targetPos: Math.round(targetPos)
@@ -126,14 +124,20 @@ export default {
   },
 
   getLeft (el) {
+    if (!el) {
+      return 0
+    }
     let left = el.offsetLeft
     if (el.offsetParent !== null) left += this.getLeft(el.offsetParent)
     return left
   },
 
   getTop (el) {
+    if (!el) {
+      return 0
+    }
     let top = el.offsetTop
-    if (el.offsetParent !== null) top += this.getTop(el.offsetParent)
+    if (el.offsetParent !== null && el.offsetParent != this.scrollEl) top += this.getTop(el.offsetParent)
     return top
   },
 
@@ -164,7 +168,7 @@ export default {
     }
   },
 
-  update (result=false) {
+  checkUpdate (result=false) {
     //实例在监听下拉触发的update事件后需要调用该方法返回更新成果与否
     if (result) {
 
@@ -172,7 +176,7 @@ export default {
 
     }
     this.updataLoadLock = false
-    this.updateLoad = false
+    this.update = false
   },
 
   scrollTo (pos) {
@@ -183,7 +187,12 @@ export default {
     this._scrollToElement(index, duration, style)
   },
 
-  load (result=false) {
+  scrollToEl (el, duration, style) {
+    let pos = this.getTop(el)
+    this._scrollTo(-pos, duration)
+  },
+
+  checkLoad (result=false) {
     clearTimeout(this.loadTimer)
     if (result) {
 
@@ -191,7 +200,7 @@ export default {
       this._bounceToBottom()
     }
     this.updataLoadLock = false
-    this.updateLoad = false
+    this.load = false
   },
 
   _trigger (event, argument) {  //触发事件
@@ -216,7 +225,7 @@ export default {
       this.animationTimer = null
     }
     this.isMoved = false
-    console.log('isMoved:', this.isMoved)
+    this.scrolling = false
   },
 
   refresh() { //需要对实例进行更新，scrollEl发生了改变，更新高度/宽度以及相应的边界信息
@@ -230,11 +239,10 @@ export default {
       this.scrollEl.style.width = scrollElSize + 'px'
       this.minScrollPos = this.wrapEl.offsetWidth - this.scrollEl.offsetWidth
     }
-    console.log(this.minScrollPos)
+    this.minScrollPos = this.minScrollPos < 0 ? this.minScrollPos : 0
     this.maxScrollPos = 0   //最大位置，超出回弹（下拉为正，左拉为正，对应顶部位置，同时对应左侧位置
     this.topBound = this.maxScrollPos + this.options.topBounceDistance //顶部下拉最大位置，左侧左拉最大位置
     this.bottomBound = this.minScrollPos - this.options.bottomBounceDistance  //底部上拉最小位置 ，右侧右拉最小位置
-    console.log(this.bottomBound)
     this.scrollElChildPos = this._getChildPos(this.scrollEl, mark)  //更新子元素位置信息
     this.len = this.scrollElChildPos.length
     this.animationTimer = null

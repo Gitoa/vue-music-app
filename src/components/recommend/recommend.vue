@@ -16,7 +16,7 @@
         <div class='recommend-list'>
           <h1 class='list-title'>热门歌单推荐</h1>
           <ul>
-            <li v-for='item in discList' class='item'>
+            <li v-for='item in discList' class='item' @click='selectItem(item)'>
               <div class='icon'>
                 <img width = '60' height='60' v-lazy='item.imgurl'/>
               </div>
@@ -31,6 +31,7 @@
       <div class='loading-container' v-show='!discList.length'>
         <loading></loading>
       </div>
+      <router-view></router-view>
     </scroll>
   </div>
 </template>
@@ -39,9 +40,10 @@
 import Slider from 'base/slider/slider'
 import Scroll from 'base/scroll/scroll'
 import Loading from 'base/loading/loading'
-
+import {playlistMixin} from 'common/js/mixin'
 import {getRecommend, getDiscList} from 'api/recommend'
 import {ERR_OK} from 'api/config'
+import {mapMutations} from 'vuex'
 
 export default {
   data () {
@@ -50,6 +52,7 @@ export default {
       discList: []
     }
   },
+  mixins: [playlistMixin],
   components: {
     Slider,
     Scroll,
@@ -64,7 +67,7 @@ export default {
   activated () {
     console.log('recommend_active')
     setTimeout(() => {
-      this.$refs.slider && this.$refs.slider.slider.refresh()
+      this.$refs.slider && this.$refs.slider.slider && this.$refs.slider.slider.refresh()
     }, 20)
   },
   destroyed () {
@@ -83,6 +86,17 @@ export default {
         }, 20)
       }
     },
+    handlePlaylist (playlist) {
+      const bottom = playlist.length > 0 ? '60px' : ''
+      this.$refs.recommend.style.bottom = bottom
+      this.$refs.scroll.refresh()
+    },
+    selectItem(item) {
+      this.$router.push({
+        path: `/recommend/${item.dissid}`
+      })
+      this.setDisc(item)
+    },
     _getRecommend () {
       getRecommend().then((res) => {
         if (res.code === ERR_OK) {
@@ -94,14 +108,16 @@ export default {
     },
     _getDiscList () {
       getDiscList().then((res) => {
-        console.log(res)
         if (res.code === ERR_OK) {
           this.discList = res.data.list
         }
       }).catch((err) => {
         console.log(err)
       })
-    }
+    },
+    ...mapMutations({
+      setDisc: 'SET_DISC'
+    })
   }
 }
 </script>
@@ -136,7 +152,7 @@ export default {
       position: absolute;
       width: 100%;
       top: 50%;
-      transform: tanslateY(-50%);
+      transform: translateY(-50%);
     }
     .recommend-list {
       .list-title {

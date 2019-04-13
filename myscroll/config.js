@@ -27,5 +27,6 @@ export default {
   updateTirggerDelay: 0,  //下拉事件持续时间（可用于刷新动画播放，transition的delay
   loadTriggerDistance: 80,  //上拉阈值，超出触发上拉事件（上拉加载  惯性滚动不会超出该范围
   loadTriggerDelay: 3000, //上拉回弹的delay
-  updateLoad: false,  //默认没有下拉更新与上拉加载事件
+  update: false,  //默认没有下拉更新与上拉加载事件
+  load: false,
 }

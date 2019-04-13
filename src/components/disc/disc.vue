@@ -1,18 +1,22 @@
 <template>
   <transition name='slide'>
-    <music-list :songs='songs' :bg-image='bgImage' :title='title'></music-list>
+    <music-list :title='title' :bg-image='bgImage' :songs='songs'></music-list>
   </transition>
 </template>
 
 <script>
 import MusicList from 'components/music-list/music-list'
 import {mapGetters} from 'vuex'
-import {getSingerDetail} from 'api/singer'
+import {getSongList} from 'api/recommend'
 import {ERR_OK} from 'api/config'
 import {createSong, isValidMusic, processSongsUrl} from 'common/js/song'
+
 export default {
   components: {
     MusicList
+  },
+  created () {
+    this._getSongList()
   },
   data () {
     return {
@@ -20,38 +24,34 @@ export default {
     }
   },
   computed: {
-    ...mapGetters([
-      'singer'
-    ]),
     title() {
-      return this.singer.name
+      return this.disc.discname
     },
     bgImage() {
-      return this.singer.avatar
-    }
-  },
-  created() {
-    this._getDetail()
+      return this.disc.imgurl
+    },
+    ...mapGetters([
+      'disc'
+    ])
   },
   methods: {
-    _getDetail() {
-      if (!this.singer.id) {
-        this.$router.push('/singer')
+    _getSongList () {
+      if (!this.disc.dissid) {
+        this.$router.push('/recommend')
         return
       }
-      getSingerDetail(this.singer.id).then((res) => {
+      getSongList(this.disc.dissid).then((res) => {
         if (res.code === ERR_OK) {
-          processSongsUrl(this._normalizeSongs(res.data.list)).then((songs) => {
+          processSongsUrl(this._normalizeSongs(res.cdlist[0].songlist)).then((songs) => {
             this.songs = songs
           })
         }
       })
     },
-    _normalizeSongs(list) {
+    _normalizeSongs (list) {
       let ret = []
-      list.forEach((item) => {
-        let {musicData} = item
-        if (isValidMusic(musicData)) {
+      list.forEach((musicData) => {
+        if(isValidMusic(musicData)) {
           ret.push(createSong(musicData))
         }
       })
@@ -62,11 +62,10 @@ export default {
 </script>
 
 <style lang='scss' scoped>
-@import "~common/scss/variable";
 .slide-enter-active, .slide-leave-active {
-  transition: all 0.3s
+  transition: all 0.3s;
 }
 .slide-enter, .slide-leave-to {
-  transform: translate3d(100%, 0, 0)
+  transform: translated3d(100%, 0, 0);
 }
 </style>

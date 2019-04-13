@@ -93,7 +93,8 @@ export default function MyScroll (el, options) {
   this.isMoved = false  //标记是否在滚动
   this.isInTransition = false //标记是否处于惯性滚动中
   this.onplay = false //标记是否处于自动播放
-  this.updateLoad = false //标记是否处于更新加载阶段，此时任意事件都不能触发，仅在updateLoadLock为true时在transitionend中修改
+  this.update = false //标记是否处于更新加载阶段，此时任意事件都不能触发，仅在updateLoadLock为true时在transitionend中修改
+  this.load = false
   this.updateLoadLock = true //用于锁定updateLoad
 
   this.listener = []  //发布/订阅模式下订阅的事件及处理函数集合

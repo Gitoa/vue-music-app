@@ -24,7 +24,15 @@ export default {
     listenScroll: {
       type: Boolean,
       default: false
-    }
+    },
+    pullup: {
+      type: Boolean,
+      default: false
+    },
+    beforeScroll: {
+      type: Boolean,
+      default: false
+    },
   },
   mounted () {
     console.log(this.probeType)
@@ -37,11 +45,24 @@ export default {
       if (!this.$refs.wrapper) {
         return
       }
-      this.scroll = new MyScroll(this.$refs.wrapper)
+      this.scroll = new MyScroll(this.$refs.wrapper, {
+        load: this.pullup
+      })
       if (this.listenScroll) {
         let _this = this
         this.scroll.on('scroll', (pos) => {
           _this.$emit('scroll', pos)
+        })
+      }
+      if (this.pullup) {
+        let _this = this
+        this.scroll.on('load', () => {
+          _this.$emit('pullup')
+        })
+      }
+      if (this.beforeScroll) {
+        this.scroll.on('scrollStart', () => {
+          this.$emit('scrollStart')
         })
       }
     },
@@ -59,7 +80,16 @@ export default {
     },
     scrollToElement () {
       this.scroll && this.scroll.scrollToElement.apply(this.scroll, arguments)
-    }
+    },
+    scrollToEl () {
+      this.scroll && this.scroll.scrollToEl.apply(this.scroll, arguments)
+    },
+    update (result) {
+      this.scroll && this.scroll.checkUpdate(result)
+    },
+    load (result) {
+      this.scroll && this.scroll.checkLoad(result)
+    },
   },
   watch: {
     data () {

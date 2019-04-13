@@ -38,6 +38,30 @@ const devWebpackConfig = merge(baseWebpackConfig, {
         })
       })
 
+      app.get('/api/getQuery', function(req, res) {
+        const url = 'https://c.y.qq.com/soso/fcgi-bin/search_for_qq_cp'
+
+        axios.get(url, {
+          headers: {
+            referer: 'https://c.y.qq.com',
+            host: 'c.y.qq.com'
+          },
+          params: req.query
+        }).then((response) => {
+          let ret = response.data
+          if (typeof ret === 'string') {
+            const reg = /^\w+\(({.+})\)$/
+            const matches = ret.match(reg)
+            if (matches) {
+              ret = JSON.parse(matches[1])
+            }
+          }
+          res.json(ret)
+        }).catch((e) => {
+          console.log(e)
+        })
+      })
+
       app.get('/api/getCdInfo', function (req, res) {
         const url = 'https://c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg'
         axios.get(url, {
@@ -95,7 +119,7 @@ const devWebpackConfig = merge(baseWebpackConfig, {
             'Content-type': 'application/x-www-form-urlencoded'
           }
         }).then((response) => {
-          console.log(response.data)
+          console.log(response.data.url_mid.data.midurlinfo)
           res.json(response.data)
         }).catch((e) => {
           console.log(e)

@@ -74,7 +74,6 @@ export default {
       this.dots = new Array(this.children.length)
     },
     _initSlider () {
-      console.log(this.$refs.slider.offsetHeight)
       this.slider = new MyScroll(this.$refs.slider, {
         direction: 'X',
         loop: this.loop,
@@ -87,7 +86,6 @@ export default {
     },
     _onScrollEnd () {
       let pageIndex = this.slider.getCurrentPage()
-      console.log(pageIndex)
       this.currentPageIndex = pageIndex
     },
   }
