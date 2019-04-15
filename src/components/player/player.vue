@@ -57,7 +57,7 @@
               <i @click='next' class='icon-next'></i>
             </div>
             <div class='icon i-right'>
-              <i class='icon icon-not-favorite'></i>
+              <i class='icon' :class='getFavoriteIcon(currentSong)' @click='toggleFavorite(currentSong)'></i>
             </div>
           </div>
         </div>
@@ -85,12 +85,12 @@
       </div>
     </transition>
     <play-list ref='playlist'></play-list>
-    <audio ref='audio' :src='currentSong.url' @canplay='ready' @error='error' @timeupdate='updateTime' @ended='end'></audio>
+    <audio ref='audio' :src='currentSong.url' @play='ready' @error='error' @timeupdate='updateTime' @ended='end'></audio>
   </div>
 </template>
 
 <script>
-import {mapGetters, mapMutations} from 'vuex'
+import {mapGetters, mapMutations, mapActions} from 'vuex'
 import animations from 'create-keyframe-animation'
 import {prefixStyle} from 'common/js/dom'
 import ProgressBar from 'base/progress-bar/progress-bar'
@@ -159,8 +159,12 @@ export default {
       }
       if (this.currentLyric) {
         this.currentLyric.stop()
+        this.currentTime = 0
+        this.playingLyric = ''
+        this.currentLineNum = 0
       }
-      setTimeout(() => {
+      clearTimeout(this.timer)
+      this.timer = setTimeout(() => {
         this.$refs.audio.play()
         this.getLyric()
       }, 1000)
@@ -173,6 +177,9 @@ export default {
     }
   },
   methods: {
+    ...mapActions([
+      'savePlayHistory'
+    ]),
     ...mapMutations({
       setFullScreen: 'SET_FULL_SCREEN',
     }),
@@ -236,6 +243,7 @@ export default {
       }
       if (this.playlist.length === 1) {
         this.loop()
+        return
       } else {
         let index = this.currentIndex + 1
         if (index === this.playlist.length) {
@@ -254,6 +262,7 @@ export default {
       }
       if (this.playlist.length === 1) {
         this.loop()
+        return
       } else {
         let index = this.currentIndex - 1
         if (index === -1) {
@@ -274,11 +283,12 @@ export default {
       }
     },
     ready() {
-      console.log('ready')
       this.songReady = true
+      this.savePlayHistory(this.currentSong)
     },
     error() {
       this.songReady = true
+      this.savePlayHistory(this.currentSong)
     },
     updateTime(e) {
       this.currentTime = e.target.currentTime
@@ -301,6 +311,9 @@ export default {
     },
     getLyric() {
       this.currentSong.getLyric().then((lyric) => {
+        if (this.currentSong.lyric !== lyric) {
+          return
+        }
         this.currentLyric = new Lyric(lyric, this.handleLyric)
         if(this.playing) {
           this.currentLyric.play()

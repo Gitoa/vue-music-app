@@ -1,5 +1,5 @@
 <template>
-  <scroll class='suggest' :data='result' :pullup='pullup' @pullup='searchMore' ref='scroll' :beforeScroll='beforeScroll' @scrollStart='listScroll'>
+  <scroll class='suggest' :data='result' :pullup='pullup' @pullup='searchMore' ref='suggest' :beforeScroll='beforeScroll' @scrollStart='listScroll'>
     <ul class='suggest-list'>
       <li class='suggest-item' v-for='item in result' @click='selectItem(item)'>
         <div class='icon'>
@@ -62,12 +62,13 @@ export default {
     ...mapActions ([
       'insertSong'
     ]),
-    search () {
+    search() {
       this.page = 1
       this.hasMore = true
-      this.$refs.scroll.scrollTo(0)
+      this.$refs.suggest.scrollTo(0)
       search(this.query, this.page, this.showSinger, perpage).then(async(res) => {
         if (res.code === ERR_OK) {
+          console.log(res.data)
           this.result = await this._genResult(res.data)
           this._checkMore(res.data)
         }
@@ -80,9 +81,10 @@ export default {
       this.page++
       search(this.query, this.page, this.showSinger, perpage).then(async (res) => {
         if (res.code === ERR_OK) {
-          this.result = await this.result.concat(this._genResult(res.data))
+          let tmp = await this._genResult(res.data)
+          this.result = this.result.concat(tmp)
           this._checkMore(res.data)
-          this.$refs.scroll.load(true)
+          this.$refs.suggest.load(true)
         }
       })
     },
@@ -117,6 +119,9 @@ export default {
         this.insertSong(item)
       }
       this.$emit('select')
+    },
+    refresh() {
+      this.$refs.suggest.refresh()
     },
     async _genResult(data) {
       let ret = []

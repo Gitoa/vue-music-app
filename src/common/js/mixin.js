@@ -1,7 +1,8 @@
-import {mapGetters, mapMutations} from 'vuex'
+import {mapGetters, mapMutations, mapActions} from 'vuex'
 import { SET_PLAY_MODE } from '../../store/mutation-types';
 import {playMode} from 'common/js/config'
 import {shuffle} from 'common/js/util'
+import { deleteSongList } from '../../store/action';
 
 export const playlistMixin = {
   computed: {
@@ -33,7 +34,8 @@ export const playerMixin = {
       'sequenceList',
       'currentSong',
       'playlist',
-      'mode'
+      'mode',
+      'favoriteList'
     ]),
     iconMode() {
       return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
@@ -47,6 +49,10 @@ export const playerMixin = {
       setPlayMode: 'SET_PLAY_MODE',
       setPlayList: 'SET_PLAYLIST'
     }),
+    ...mapActions([
+      'saveFavoriteList',
+      'deleteFavoriteList',
+    ]),
     changeMode() {
       const mode = (this.mode + 1) % 3
       this.setPlayMode(mode)
@@ -65,5 +71,61 @@ export const playerMixin = {
       })
       this.setCurrentIndex(index)
     },
+    getFavoriteIcon(song) {
+      if (this.isFavorite(song)) {
+        return 'icon-favorite'
+      } else {
+        return 'icon-not-favorite'
+      }
+    },
+    toggleFavorite(song) {
+      console.log('wtf')
+      if (this.isFavorite(song)) {
+        console.log('favorite')
+        this.deleteFavoriteList(song)
+      } else {
+        console.log('not favorite')
+        this.saveFavoriteList(song)
+      }
+    },
+    isFavorite(song) {
+      const index = this.favoriteList.findIndex((item) => {
+        return item.id === song.id
+      })
+      return index > -1
+    },
+  }
+}
+
+export const searchMixin = {
+  data() {
+    return {
+      query: '',
+      refreshDelay: 100,
+    }
+  },
+  computed: {
+    ...mapGetters([
+      'searchHistory',
+    ])
+  },
+  methods: {
+    ...mapActions([
+      'saveSearchHistory',
+      'deleteSearchHistory',
+    ]),
+    blurInput() {
+      this.$refs.searchBox.blur()
+    },
+    saveSearch() {
+      this.saveSearchHistory(this.query)
+    },
+    addQuery(query) {
+      console.log(query)
+      this.$refs.searchBox.setQuery(query)
+    },
+    onQueryChange(query) {
+      this.query = query
+    }, 
   }
 }
